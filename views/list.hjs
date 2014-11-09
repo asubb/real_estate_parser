@@ -47,17 +47,18 @@
         -->
     </script>
 </head>
-<body>
+<body style="width: 100%; height: 100%">
 
-<div>
+<div style="float: right; position: fixed; right: 0">
     <a href="#" onclick="$('#map').css('display', $('#map').css('display') == 'block' ? 'none' : 'block');">
         Show/Hide Map
     </a>
 
-    <div id="map" style="display: block; position: absolute; width:100%; height:700px"></div>
+    <div id="map" style="display: block; position: absolute; width:900px; height:700px; right: 0"></div>
 </div>
 
-<table border="1" cellpadding="10" cellspacing="0">
+<div style="width: 100%; height: 100%; overflow: auto">
+    <table border="1" cellpadding="10" cellspacing="0">
     {{#apartments}}
     <tr>
         <td><a href="{{url}}">{{id}}</a></td>
@@ -82,5 +83,6 @@
     </tr>
     {{/apartments}}
 </table>
+</div>
 </body>
 </html>
