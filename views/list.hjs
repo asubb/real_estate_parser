@@ -7,6 +7,8 @@
         <!--
         var map;
 
+        var coordinates = {};
+
         ymaps.ready(function () {
             map = new ymaps.Map("map", {
                 center: [56.856702, 53.174075],
@@ -25,17 +27,20 @@
                     ymaps.geocode("Ижевск, " + itm.address)
                             .then(function (res) {
                                 if (res.geoObjects && res.geoObjects.get(0)) {
-
                                     var obj = res.geoObjects.get(0);
                                     var p = new ymaps.GeoObject({
                                         geometry: obj.geometry,
                                         properties: {
+                                            clusterCaption: itm.address,
                                             balloonContentBody: desc
                                         }
                                     });
                                     apartments.add(p);
+
+                                    coordinates[itm.id] = p.geometry.getCoordinates();
                                 }
                             },
+
                             function (err) {
                                 console.error('Ошибка', err);
                             }
@@ -44,6 +49,14 @@
                 map.geoObjects.add(apartments);
             });
         });
+
+        var positionOn = function (id) {
+            var coord = coordinates[id];
+            if (coord) {
+                map.setCenter(coord, 17);
+                $('#map').css('display', 'block');
+            }
+        }
         -->
     </script>
 </head>
@@ -62,6 +75,7 @@
     {{#apartments}}
     <tr>
         <td><a href="{{url}}">{{id}}</a></td>
+        <td><a href="#" onclick="positionOn('{{id}}')">on map</a></td>
         <td>{{district}}</td>
         <td>{{address}}</td>
         <td>{{rooms}}</td>
