@@ -12,7 +12,18 @@ var Apartment = mongoose.model('apartment', {
     floor: String,
     price: Number,
     parsedAt: Date,
-    createdAt: Date
+    createdAt: Date,
+    isDuplicate: Boolean,
+    duplicates: [{
+        id: String,
+        source: String,
+        url: String,
+        price: Number,
+        createdAt: Date,
+        createdAtStr: String
+    }],
+    // js calculated fields
+    createdAtStr: String
 });
 
 exports.Apartment = Apartment;
