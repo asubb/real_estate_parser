@@ -3,9 +3,8 @@ var models = require('../model/models');
 var moment = require('moment')
 var router = express.Router();
 
-router.get('/cleanUpDupes', function (req, res) {
-    // check for duplicates
-    // TODO move it somewhere to the parse stage
+
+function cleanUpDupes() {
     models.Apartment.aggregate({
         $group: {_id: {address: '$address', rooms: '$rooms', area: '$area'}, newestCreatedAt: {$max: '$createdAt'}}
     }, function (errors, lastAll) {
@@ -53,31 +52,49 @@ router.get('/cleanUpDupes', function (req, res) {
             })(lastAll[i])
         }
     });
+}
 
-    res.send('Clean Up Started');
-});
-
-router.get('/', function (req, res) {
+function doList(callback) {
     // list non-duplicates
     models.Apartment.find({
-//        '$or': [
-//            {isDuplicate: false},
-//            {isDuplicate: null}
-//        ]
+        '$or': [
+            {isDuplicate: false},
+            {isDuplicate: null}
+        ]
     })
         .sort({createdAt: -1})
         .exec(function (errors, l) {
-        if (errors) return console.error("LIST error", errors);
+            if (errors) return console.error("LIST error", errors);
             for (var i = 0; i < l.length; i++) {
                 l[i].createdAtStr = moment(new Date(l[i].createdAt)).format("DD MMMM YY");
                 for (var j = 0; l[i].duplicates && j < l[i].duplicates.length; j++) {
                     l[i].duplicates[j].createdAtStr = moment(new Date(l[i].duplicates[j].createdAt)).format("DD MMMM YY");
                 }
             }
+            callback(l);
+        });
+}
+
+router.get('/cleanUpDupes', function (req, res) {
+    // check for duplicates
+    // TODO move it somewhere to the parse stage
+    cleanUpDupes();
+    res.send('Clean Up Started');
+});
+
+router.get('/json', function (req, res) {
+    doList(function (l) {
+        res.json(l);
+    });
+});
+
+router.get('/', function (req, res) {
+    doList(function (l) {
         res.render('list', {
             apartments: l
         });
     });
 });
+
 
 module.exports = router;
