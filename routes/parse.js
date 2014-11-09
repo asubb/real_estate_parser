@@ -92,16 +92,16 @@ var parseAvito = function () {
                             } else {
                                 switch (date[2]) {
                                     case "сен":
-                                        created = new Date(2014, 9, date[1]);
+                                        created = new Date(2014, 8, date[1]);
                                         break;
                                     case "окт":
-                                        created = new Date(2014, 10, date[1]);
+                                        created = new Date(2014, 9, date[1]);
                                         break;
                                     case "нояб":
-                                        created = new Date(2014, 11, date[1]);
+                                        created = new Date(2014, 10, date[1]);
                                         break;
                                     case "дек":
-                                        created = new Date(2014, 12, date[1]);
+                                        created = new Date(2014, 11, date[1]);
                                         break;
                                 }
                             }
@@ -190,7 +190,7 @@ var parseAvito = function () {
 
     var startLink = 'https://www.avito.ru/izhevsk/kvartiry/prodam/vtorichka/ne_pervyy_i_ne_posledniy?pmax=2000000&pmin=1500000&district=164-165-166&f=59_920b.575_5930';
     parsePage(startLink);
-}
+};
 
 router.get('/', function (req, res) {
     parseAvito();
