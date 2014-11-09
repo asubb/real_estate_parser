@@ -54,14 +54,14 @@ function cleanUpDupes() {
     });
 }
 
-function doList(callback) {
+function doList(callback, filter) {
+    filter = filter || {};
+    filter['$or'] = [
+        {isDuplicate: false},
+        {isDuplicate: null}
+    ]
     // list non-duplicates
-    models.Apartment.find({
-        '$or': [
-            {isDuplicate: false},
-            {isDuplicate: null}
-        ]
-    })
+    models.Apartment.find(filter)
         .sort({createdAt: -1})
         .exec(function (errors, l) {
             if (errors) return console.error("LIST error", errors);
@@ -77,9 +77,38 @@ function doList(callback) {
 
 router.get('/cleanUpDupes', function (req, res) {
     // check for duplicates
-    // TODO move it somewhere to the parse stage
     cleanUpDupes();
     res.send('Clean Up Started');
+});
+
+router.get('/star', function (req, res) {
+    models.Apartment.findOne({
+        id: req.query.id
+    })
+        .exec(function (errors, a) {
+            if (errors) {
+                res.status(500).send("ERROR" + errors);
+                return console.error("STAR error", errors);
+            }
+            if (!a) {
+                res.status(500).send("NOT FOUND " + req.query.id);
+                return console.error("STAR error", "NOT FOUND " + req.query.id);
+            }
+            var starred = a.starred ? false : true;
+            models.Apartment.update({id: a.id}, {starred: starred}, function (e, n, r) {
+                if (e) console.error("STAR error", a.id, e, n, r);
+                models.Apartment.findOne({
+                    id: req.query.id
+                })
+                    .exec(function (errors, a) {
+                        if (errors) {
+                            res.status(500).send("ERROR" + errors);
+                            return console.error("STAR error", errors);
+                        }
+                        res.json(a);
+                    });
+            });
+        });
 });
 
 router.get('/json', function (req, res) {
@@ -94,6 +123,14 @@ router.get('/', function (req, res) {
             apartments: l
         });
     });
+});
+
+router.get('/starred', function (req, res) {
+    doList(function (l) {
+        res.render('list', {
+            apartments: l
+        });
+    }, {starred: true});
 });
 
 

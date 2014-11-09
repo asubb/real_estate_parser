@@ -13,6 +13,7 @@ var Apartment = mongoose.model('apartment', {
     price: Number,
     parsedAt: Date,
     createdAt: Date,
+    starred: Boolean,
     isDuplicate: Boolean,
     duplicates: [{
         id: String,
