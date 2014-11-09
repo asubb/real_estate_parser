@@ -1,0 +1,10 @@
+<table border="1" cellpadding="10" cellspacing="0">
+    {{#apartments}}
+    <tr>
+        <td><a href="{{url}}">{{id}}</a></td>
+        <td>{{district}}</td>
+        <td>{{address}}</td>
+        <td>{{price}}</td>
+    </tr>
+    {{/apartments}}
+</table>

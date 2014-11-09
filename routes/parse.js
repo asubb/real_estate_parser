@@ -82,10 +82,10 @@ var parseAvito = function () {
                                 if (date) {
                                     switch (date[1]) {
                                         case "вчера":
-                                            created = new Date(new Date() - 86400000)
+                                            created = new Date(new Date() - 86400000);
                                             break;
                                         case "сегодня":
-                                            created = new Date(new Date())
+                                            created = new Date();
                                             break;
                                     }
                                 }
