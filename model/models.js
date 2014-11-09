@@ -10,7 +10,9 @@ var Apartment = mongoose.model('apartment', {
     rooms: Number,
     area: Number,
     floor: String,
-    price: Number
+    price: Number,
+    parsedAt: Date,
+    createdAt: Date
 });
 
 exports.Apartment = Apartment;

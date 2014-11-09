@@ -6,6 +6,7 @@ var models = require("../model/models");
 
 var parseAvito = function () {
     var source = "Avito";
+    var base = 'https://www.avito.ru';
 
     var headers = {
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -16,8 +17,6 @@ var parseAvito = function () {
         'pragma': 'no-cache',
         'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36'
     };
-
-    var base = "";
     var parseItems = function (items) {
         if (items.length == 0) {
             console.log("---- PARSE ITEMS BUNCH FINISHED ----");
@@ -71,24 +70,61 @@ var parseAvito = function () {
                                 floor = p[3];
                             }
                             var price = $(".description__price .description_price span[itemprop=price]")[0].innerHTML.replace(/[^\d]+/g, "");
-
                             var address = $(".description_content_company[itemprop=address] span[itemprop=streetAddress]")[0].innerHTML;
                             var district = $(".description_content_company[itemprop=address] span")[0].innerHTML.match(/[^,]+/)[0].split(" ")[1];
                             var description = $("#desc_text")[0].innerHTML;
-                            var a = new models.Apartment({
-                                id: item.id,
-                                url: link,
-                                source: source,
-                                description: description,
-                                district: district,
-                                address: address,
-                                rooms: rooms,
-                                area: area,
-                                floor: floor,
-                                price: price
-                            });
 
-                            a.save();
+                            var created;
+                            var createdEl = $(".g_92 .item-subtitle");
+                            var date = createdEl[0].innerHTML.match(/(\d+) (нояб|дек|сен|окт)\./);
+                            if (!date) {
+                                date = createdEl[0].innerHTML.match(/(вчера|сегодня)/);
+                                if (date) {
+                                    switch (date[1]) {
+                                        case "вчера":
+                                            created = new Date(new Date() - 86400000)
+                                            break;
+                                        case "сегодня":
+                                            created = new Date(new Date())
+                                            break;
+                                    }
+                                }
+                            } else {
+                                switch (date[2]) {
+                                    case "сен":
+                                        created = new Date(2014, 9, date[1]);
+                                        break;
+                                    case "окт":
+                                        created = new Date(2014, 10, date[1]);
+                                        break;
+                                    case "нояб":
+                                        created = new Date(2014, 11, date[1]);
+                                        break;
+                                    case "дек":
+                                        created = new Date(2014, 12, date[1]);
+                                        break;
+                                }
+                            }
+                            if (created) {
+                                var a = new models.Apartment({
+                                    id: item.id,
+                                    url: link,
+                                    source: source,
+                                    description: description,
+                                    district: district,
+                                    address: address,
+                                    rooms: rooms,
+                                    area: area,
+                                    floor: floor,
+                                    price: price,
+                                    parsedAt: new Date(),
+                                    createdAt: created
+                                });
+
+                                a.save();
+                            } else {
+                                console.warn("Can't recognize date", createdEl);
+                            }
                             console.log('Saved Avito: ' + item.id);
                         } catch (e) {
                             console.warn("Skipped due to parse error", e, e.line, body);
@@ -153,7 +189,6 @@ var parseAvito = function () {
     };
 
     var startLink = 'https://www.avito.ru/izhevsk/kvartiry/prodam/vtorichka/ne_pervyy_i_ne_posledniy?pmax=2000000&pmin=1500000&district=164-165-166&f=59_920b.575_5930';
-    base = 'https://www.avito.ru';
     parsePage(startLink);
 }
 
