@@ -19,8 +19,8 @@ var parseAvito = function () {
 
     var base = "";
     var parseItems = function (items) {
-        console.log("-->>" + items.length);
         if (items.length == 0) {
+            console.log("---- PARSE ITEMS BUNCH FINISHED ----");
             return;
         }
         var item = items.pop();
@@ -52,34 +52,50 @@ var parseAvito = function () {
                 console.log("Item page " + link);
                 if (!error && response.statusCode == 200) {
                     jsdom.env(body, ["http://code.jquery.com/jquery.js"], function (errors, window) {
-                        if (errors) return console.error("parse item jsdom error", errors);
-                        var $ = window.$;
-                        var p = $("h1[itemprop=name]")[0].innerHTML.match(/(\d+)[^,]+,\s(\d+)[^,]+,\s(\d+\/\d+)/);
-                        var rooms = p[1];
-                        var area = p[2];
-                        var floor = p[3];
-                        var price = $(".description__price .description_price span[itemprop=price]")[0].innerHTML.replace(/[^\d]+/g, "");
+                        try {
+                            if (errors) return console.error("parse item jsdom error", errors);
+                            var $ = window.$;
+                            var p = $("h1[itemprop=name]")[0].innerHTML.match(/(\d+)[^,]+,\s(\d+)[^,]+,\s(\d+\/\d+)/);
+                            var rooms;
+                            var area;
+                            var floor;
+                            if (!p) {
+                                // another case "Студия, 36 м², 5/10 эт."
+                                p = $("h1[itemprop=name]")[0].innerHTML.match(/[^,]+,\s(\d+)[^,]+,\s(\d+\/\d+)/);
+                                rooms = 0.5;
+                                area = p[1];
+                                floor = p[2];
+                            } else {
+                                rooms = p[1];
+                                area = p[2];
+                                floor = p[3];
+                            }
+                            var price = $(".description__price .description_price span[itemprop=price]")[0].innerHTML.replace(/[^\d]+/g, "");
 
-                        var address = $(".description_content_company[itemprop=address] span[itemprop=streetAddress]")[0].innerHTML;
-                        var district = $(".description_content_company[itemprop=address] span")[0].innerHTML.match(/[^,]+/)[0].split(" ")[1];
-                        var description = $("#desc_text")[0].innerHTML;
-                        var a = new models.Apartment({
-                            id: item.id,
-                            url: link,
-                            source: source,
-                            description: description,
-                            district: district,
-                            address: address,
-                            rooms: rooms,
-                            area: area,
-                            floor: floor,
-                            price: price
-                        });
+                            var address = $(".description_content_company[itemprop=address] span[itemprop=streetAddress]")[0].innerHTML;
+                            var district = $(".description_content_company[itemprop=address] span")[0].innerHTML.match(/[^,]+/)[0].split(" ")[1];
+                            var description = $("#desc_text")[0].innerHTML;
+                            var a = new models.Apartment({
+                                id: item.id,
+                                url: link,
+                                source: source,
+                                description: description,
+                                district: district,
+                                address: address,
+                                rooms: rooms,
+                                area: area,
+                                floor: floor,
+                                price: price
+                            });
 
-                        a.save();
-                        console.log('Saved Avito: ' + item.id);
+                            a.save();
+                            console.log('Saved Avito: ' + item.id);
+                        } catch (e) {
+                            console.warn("Skipped due to parse error", e, e.line, body);
+                        }
                         scheduleNextParse();
                     });
+
                 } else {
                     console.error(link, error, response ? response.statusCode : "");
                 }
@@ -99,31 +115,35 @@ var parseAvito = function () {
             console.log("Page " + link);
             if (!error && response.statusCode == 200) {
                 jsdom.env(body, ["http://code.jquery.com/jquery.js"], function (errors, window) {
-                    if (errors) return console.error("parse page jsdom error", errors, body);
-                    var $ = window.$;
+                    try {
+                        if (errors) return console.error("parse page jsdom error", errors, body);
+                        var $ = window.$;
 
-                    // iterate through items
-                    var items = [];
-                    $("div.item").each(function (idx, item) {
-                        var url = $(item).find("h3.title a").attr('href');
-                        items.push({id: item.id, url: url});
-                    });
-                    parseItems(items);
+                        // iterate through items
+                        var items = [];
+                        $("div.item").each(function (idx, item) {
+                            var url = $(item).find("h3.title a").attr('href');
+                            items.push({id: item.id, url: url});
+                        });
+                        parseItems(items);
 
-                    // get next link
-                    var nextEl = $("div.pagination__nav a.pagination__page");
-                    if (nextEl.length == 1 && nextEl[0].innerHTML.indexOf("→") < 0) {
-                        // if there is no next button reset nextEl
-                        nextEl = null;
-                    }
-                    if (nextEl) {
-                        var link = nextEl[nextEl.length == 1 ? 0 : 1].href;
-                        link = link.replace(/file:[\/]+(c:)?/, '');
-                        setTimeout(function () {
-                            parsePage(base + link);
-                        }, Math.random() * 10000 + 10000);
-                    } else {
-                        console.log("---- DONE ----")
+                        // get next link
+                        var nextEl = $("div.pagination__nav a.pagination__page");
+                        if (nextEl.length == 1 && nextEl[0].innerHTML.indexOf("→") < 0) {
+                            // if there is no next button reset nextEl
+                            nextEl = null;
+                        }
+                        if (nextEl) {
+                            var link = nextEl[nextEl.length == 1 ? 0 : 1].href;
+                            link = link.replace(/file:[\/]+(c:)?/, '');
+                            setTimeout(function () {
+                                parsePage(base + link);
+                            }, Math.random() * 10000 + 10000);
+                        } else {
+                            console.log("---- PARSE PAGES FINISHED ----")
+                        }
+                    } catch (e) {
+                        console.warn("Skipped due to parse error", e, e.line, body);
                     }
                 });
             } else {
