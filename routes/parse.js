@@ -22,6 +22,7 @@ var parseAvito = function () {
             console.log("---- PARSE ITEMS BUNCH FINISHED ----");
             return;
         }
+        console.log("Parsing items, " + items.length + " left");
         var item = items.pop();
 
         var scheduleNextParse = function (delay) {
@@ -55,9 +56,7 @@ var parseAvito = function () {
                             if (errors) return console.error("parse item jsdom error", errors);
                             var $ = window.$;
                             var p = $("h1[itemprop=name]")[0].innerHTML.match(/(\d+)[^,]+,\s(\d+)[^,]+,\s(\d+\/\d+)/);
-                            var rooms;
-                            var area;
-                            var floor;
+                            var rooms, area, floor;
                             if (!p) {
                                 // another case "Студия, 36 м², 5/10 эт."
                                 p = $("h1[itemprop=name]")[0].innerHTML.match(/[^,]+,\s(\d+)[^,]+,\s(\d+\/\d+)/);
@@ -139,6 +138,7 @@ var parseAvito = function () {
         });
     };
 
+    var items = [];
     var parsePage = function (link) {
         request({
             url: link,
@@ -156,12 +156,10 @@ var parseAvito = function () {
                         var $ = window.$;
 
                         // iterate through items
-                        var items = [];
                         $("div.item").each(function (idx, item) {
                             var url = $(item).find("h3.title a").attr('href');
                             items.push({id: item.id, url: url});
                         });
-                        parseItems(items);
 
                         // get next link
                         var nextEl = $("div.pagination__nav a.pagination__page");
@@ -174,9 +172,10 @@ var parseAvito = function () {
                             link = link.replace(/file:[\/]+(c:)?/, '');
                             setTimeout(function () {
                                 parsePage(base + link);
-                            }, Math.random() * 10000 + 10000);
+                            }, Math.random() * 10000 + 3000);
                         } else {
                             console.log("---- PARSE PAGES FINISHED ----")
+                            parseItems(items);
                         }
                     } catch (e) {
                         console.warn("Skipped due to parse error", e, e.line, body);
