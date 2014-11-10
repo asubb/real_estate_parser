@@ -64,6 +64,7 @@
             $.getJSON('/list/star?id=' + id, null, function (res) {
                 el.html(res.starred ? 'X' : 'o');
                 el.css('display', 'inline');
+                $("#row_" + id).css('background', res.starred ? '#EEEEEE' : 'transparent');
             });
         }
 
@@ -92,7 +93,7 @@
 <div>
     <table border="1" cellpadding="10" cellspacing="0" style="margin-top: 80px">
         {{#apartments}}
-        <tr id="row_{{id}}">
+        <tr id="row_{{id}}" {{#starred}}style="background: #EEEEEE"{{/starred}}>
             <td><a href="JavaScript: return false;" onclick="star('{{id}}')"
                    id="star_{{id}}">{{#starred}}X{{/starred}}{{^starred}}o{{/starred}}</a>
             </td>
