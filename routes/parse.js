@@ -30,7 +30,7 @@ var parseAvito = function () {
                 // start next parsing
                 parseItems(items);
             }, delay ? delay : Math.random() * 10000 + 3000);
-        }
+        };
 
         models.Apartment.findOne({id: item.id, source: source}, function (err, a) {
             if (err) return console.error(err);
