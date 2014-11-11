@@ -27,4 +27,11 @@ var Apartment = mongoose.model('apartment', {
     createdAtStr: String
 });
 
+var Stat = mongoose.model('statistic', {
+    date: Date,
+    type: String, // overall, new, used
+    price: Number // in rubles per sq. meter
+});
+
 exports.Apartment = Apartment;
+exports.Stat = Stat;

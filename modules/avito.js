@@ -5,7 +5,6 @@ var models = require("../model/models");
 var log = function (res, msg) {
     console.log("[AVITO] " +  msg);
     res.write("<p>[AVITO] " + msg + "</p>");
-    res.flush();
 };
 
 var parse = function (req, res) {
@@ -34,14 +33,14 @@ var parse = function (req, res) {
             setTimeout(function () {
                 // start next parsing
                 parseItems(items);
-            }, delay ? delay : Math.random() * 10000 + 3000);
+            }, delay ? delay : (Math.random() * 10000 + 3000));
         };
 
         models.Apartment.findOne({id: item.id, source: source}, function (err, a) {
             if (err) return console.error(err);
             if (a) {
                 log(res, "skipped Avito: " + item.id);
-                scheduleNextParse(0);
+                scheduleNextParse(1);
                 return;
             }
 
