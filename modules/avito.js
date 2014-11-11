@@ -6,7 +6,7 @@ var log = function (res, msg) {
     console.log("[AVITO] " +  msg);
     res.write("<p>[AVITO] " + msg + "</p>");
     res.flush();
-}
+};
 
 var parse = function (req, res) {
     var source = "Avito";
