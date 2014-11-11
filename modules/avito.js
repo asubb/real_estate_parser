@@ -2,8 +2,13 @@ var request = require('request');
 var jsdom = require("jsdom");
 var models = require("../model/models");
 
+var log = function (res, msg) {
+    console.log("[AVITO] " +  msg);
+    res.write("<p>[AVITO] " + msg + "</p>");
+    res.flush();
+}
 
-var parse = function () {
+var parse = function (req, res) {
     var source = "Avito";
     var base = 'https://www.avito.ru';
 
@@ -18,10 +23,11 @@ var parse = function () {
     };
     var parseItems = function (items) {
         if (items.length == 0) {
-            console.log("---- PARSE ITEMS BUNCH FINISHED ----");
+            log(res, "---- PARSE ITEMS BUNCH FINISHED ----");
+            res.end();
             return;
         }
-        console.log("Parsing items, " + items.length + " left");
+        log(res, "Parsing items, " + items.length + " left");
         var item = items.pop();
 
         var scheduleNextParse = function (delay) {
@@ -34,7 +40,7 @@ var parse = function () {
         models.Apartment.findOne({id: item.id, source: source}, function (err, a) {
             if (err) return console.error(err);
             if (a) {
-                console.log("skipped Avito: " + item.id);
+                log(res, "skipped Avito: " + item.id);
                 scheduleNextParse(0);
                 return;
             }
@@ -48,7 +54,7 @@ var parse = function () {
                 jar: true,
                 headers: headers
             }, function (error, response, body) {
-                console.log("Item page " + link);
+                log(res, "Item page " + link);
                 if (!error && response.statusCode == 200) {
                     jsdom.env(body, ["http://code.jquery.com/jquery.js"], function (errors, window) {
                         try {
@@ -123,7 +129,7 @@ var parse = function () {
                             } else {
                                 console.warn("Can't recognize date", createdEl);
                             }
-                            console.log('Saved Avito: ' + item.id);
+                            log(res, 'Saved Avito: ' + item.id);
                         } catch (e) {
                             console.warn("Skipped due to parse error", e, e.line, body);
                         }
@@ -132,6 +138,7 @@ var parse = function () {
 
                 } else {
                     console.error(link, error, response ? response.statusCode : "");
+                    res.write(link + " " + error + " " + (response ? response.statusCode : ""));
                 }
             });
         });
@@ -147,7 +154,7 @@ var parse = function () {
             jar: true,
             headers: headers
         }, function (error, response, body) {
-            console.log("Page " + link);
+            log(res, "Page " + link);
             if (!error && response.statusCode == 200) {
                 jsdom.env(body, ["http://code.jquery.com/jquery.js"], function (errors, window) {
                     try {
@@ -173,7 +180,7 @@ var parse = function () {
                                 parsePage(base + link);
                             }, Math.random() * 10000 + 3000);
                         } else {
-                            console.log("---- PARSE PAGES FINISHED ----")
+                            log(res, "---- PARSE PAGES FINISHED ----")
                             parseItems(items);
                         }
                     } catch (e) {
@@ -182,6 +189,7 @@ var parse = function () {
                 });
             } else {
                 console.error(link, error, response ? response.statusCode : "");
+                res.write(link + " " + error + " " + (response ? response.statusCode : ""));
             }
         });
     };
