@@ -1,0 +1,92 @@
+<script src="/javascripts/chart.js"></script>
+<script src="/javascripts/moment.js"></script>
+<script src="/javascripts/jquery-1.11.1.min.js"></script>
+
+<canvas id="stats" width="1200" height="700"></canvas>
+<div id="legend"></div>
+<script>
+
+    $.getJSON('/list/stats/json', null, function (res) {
+        var labels = [];
+        var data1 = [];
+        var data2 = [];
+        var data3 = [];
+
+        var fillData = function (r, idx) {
+            if (r.type == 'overall') data1[idx] = r.price;
+            else if (r.type == 'new') data2[idx] = r.price;
+            else if (r.type == 'used') data3[idx] = r.price;
+        }
+
+        var groupIdx = 0;
+        for (var i = 0; i < res.length; i++) {
+            var date = moment(res[i].date).format("MMM YY");
+            if (i == 0) {
+                labels[0] = date;
+                fillData(res[i], groupIdx);
+            } else {
+                if (labels[i] != date) {
+                    // finalize data
+                    if (!data1[groupIdx]) data1[groupIdx] = data1[groupIdx - 1] ? data1[groupIdx - 1] : 0;
+                    if (!data2[groupIdx]) data2[groupIdx] = data2[groupIdx - 1] ? data2[groupIdx - 1] : 0;
+                    if (!data3[groupIdx]) data3[groupIdx] = data3[groupIdx - 1] ? data3[groupIdx - 1] : 0;
+                    // new date
+                    groupIdx++;
+                    labels[groupIdx] = date;
+
+                }
+                fillData(res[i], groupIdx);
+            }
+        }
+        console.log(labels, data1, data2, data3);
+
+        var data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Overall",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "rgba(220,220,220,1)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    data: data1
+                },
+                {
+                    label: "New",
+                    fillColor: "rgba(F7,46,4A, 1)",
+                    strokeColor: "#F7464A",
+                    pointColor: "#F7464A",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(151,187,205,1)",
+                    data: data2
+                },
+                {
+                    label: "Used",
+                    fillColor: "rgba(151,187,205,0.2)",
+                    strokeColor: "rgba(151,187,205,1)",
+                    pointColor: "rgba(151,187,205,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(151,187,205,1)",
+                    data: data3
+                }
+            ]
+        };
+
+        var ctx = document.getElementById("stats").getContext("2d");
+        var myLineChart = new Chart(ctx).Line(data, {
+            pointDot: false,
+            datasetFill: false,
+            legendTemplate: "<ul class=\"<%=name.toLowerCase()%>-legend\">" +
+                    "<% for (var i=0; i<datasets.length; i++){%><li>" +
+                    "<span style=\"background-color:<%=datasets[i].strokeColor%>\"><%if(datasets[i].label){%><%=datasets[i].label%><%}%></span></li>" +
+                    "<%}%>" +
+                    "</ul>"
+        });
+        $('#legend').html((myLineChart.generateLegend()));
+    });
+</script>
+

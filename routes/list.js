@@ -134,4 +134,15 @@ router.get('/starred', function (req, res) {
 });
 
 
+router.get('/stats', function (req, res) {
+    res.render('stats');
+});
+
+router.get('/stats/json', function (req, res) {
+    models.Stat.find({}, function (e, l) {
+        if (e) return res.status(500).send("ERROR " + e);
+        res.json(l);
+    })
+});
+
 module.exports = router;
