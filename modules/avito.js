@@ -23,7 +23,6 @@ var parse = function (req, res) {
     var parseItems = function (items) {
         if (items.length == 0) {
             log(res, "---- PARSE ITEMS BUNCH FINISHED ----");
-            res.end();
             return;
         }
         log(res, "Parsing items, " + items.length + " left");
