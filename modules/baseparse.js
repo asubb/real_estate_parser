@@ -2,6 +2,7 @@ var request = require('request');
 var jsdom = require("jsdom");
 var models = require("../model/models");
 var _ = require("underscore");
+var moment = require("moment");
 
 
 var parse = function (req, res, base, source, startPage, encoding, pageCallback, nextPageCallback, itemCallback) {
@@ -17,7 +18,7 @@ var parse = function (req, res, base, source, startPage, encoding, pageCallback,
     };
 
     var log = function (res, msg) {
-        console.log("[" + source + "] " + msg);
+        console.log(moment(new Date()).format("DD-MM-YYYY HH:mm:ss.SSS") + " [" + source + "] " + msg);
         res.write("<p>[" + source + "] " + msg + "</p>");
     };
 
@@ -56,38 +57,46 @@ var parse = function (req, res, base, source, startPage, encoding, pageCallback,
                 log(res, "Item page " + link);
                 if (!error && response.statusCode == 200) {
                     jsdom.env(body, ["http://code.jquery.com/jquery.js"], function (errors, window) {
-                        try {
-                            var $ = window.$;
-                            var items = itemCallback(req, res, item, $);
-                            if (!_.isArray(items)) {
-                                items = [items];
-                            }
-                            for (var i = 0; i < items.length; i++) {
-                                var it = items[i];
-                                if (it.created) {
-                                    var a = new models.Apartment({
-                                        id: it.id,
-                                        url: link,
-                                        source: source,
-                                        description: it.description,
-                                        district: it.district,
-                                        address: it.address,
-                                        rooms: it.rooms,
-                                        area: it.area,
-                                        floor: it.floor,
-                                        price: it.price,
-                                        parsedAt: new Date(),
-                                        createdAt: it.created
-                                    });
-
-                                    a.save();
-                                    log(res, 'Saved ' + source + ': ' + it.id);
-                                } else {
-                                    console.warn("Can't recognize date", it.id);
+                        if (errors) {
+                            console.error("Item parse error", errors, link)
+                        } else {
+                            try {
+                                var $ = window.$;
+                                var items = itemCallback(req, res, item, $);
+                                if (!items) {
+                                    console.warn("Canceled due to parse item error: parser returns nothing");
+                                    return;
                                 }
+                                if (!_.isArray(items)) {
+                                    items = [items];
+                                }
+                                for (var i = 0; i < items.length; i++) {
+                                    var it = items[i];
+                                    if (it.created) {
+                                        var a = new models.Apartment({
+                                            id: it.id,
+                                            url: link,
+                                            source: source,
+                                            description: it.description,
+                                            district: it.district,
+                                            address: it.address,
+                                            rooms: it.rooms,
+                                            area: it.area,
+                                            floor: it.floor,
+                                            price: it.price,
+                                            parsedAt: new Date(),
+                                            createdAt: it.created
+                                        });
+
+                                        a.save();
+                                        log(res, 'Saved ' + source + ': ' + it.id);
+                                    } else {
+                                        console.warn("Can't recognize date", it.id);
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn("Skipped due to parse error", e, e.stack, link);
                             }
-                        } catch (e) {
-                            console.warn("Skipped due to parse error", e, e.line, body);
                         }
                         scheduleNextParse();
                     });
@@ -114,17 +123,15 @@ var parse = function (req, res, base, source, startPage, encoding, pageCallback,
             if (!error && response.statusCode == 200) {
                 jsdom.env(body, ["http://code.jquery.com/jquery.js"], function (errors, window) {
                     try {
-                        if (errors) return console.error("parse page jsdom error", errors, body);
+                        if (errors) return console.error("parse page jsdom error", errors, link);
                         var $ = window.$;
 
                         var ret = pageCallback(req, res, $);
                         items = items.concat(ret ? ret : []);
 
                         // get next link
-                        var nextEl = nextPageCallback(req, res, $);
-                        if (nextEl) {
-                            var link = nextEl[nextEl.length == 1 ? 0 : 1].href;
-                            link = link.replace(/file:[\/]+(c:)?/, '');
+                        var link = nextPageCallback(req, res, $);
+                        if (link) {
                             setTimeout(function () {
                                 parsePage(base + link);
                             }, Math.random() * 10000 + 3000);
@@ -133,7 +140,7 @@ var parse = function (req, res, base, source, startPage, encoding, pageCallback,
                             parseItems(items);
                         }
                     } catch (e) {
-                        console.warn("Skipped due to parse error", e, e.line, body);
+                        console.warn("Skipped due to parse error", e, e.stack, link);
                     }
                 });
             } else {

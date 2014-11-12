@@ -97,10 +97,16 @@
             <td><a href="JavaScript: return false;" onclick="star('{{id}}')"
                    id="star_{{id}}">{{#starred}}X{{/starred}}{{^starred}}o{{/starred}}</a>
             </td>
-            <td><a href="{{url}}">{{id}}</a></td>
+            <td>
+                <div style="display:block;width:50px; overflow: hidden">
+                    <a target="_blank" href="{{url}}">{{id}}</a>
+                </div>
+            </td>
             <td><a href="JavaScript: return false;" onclick="positionOn('{{id}}')">on map</a></td>
             <td>{{district}}</td>
-            <td>{{address}}</td>
+            <td>
+                <div style="display:block;width:200px; overflow: hidden">{{address}}</div>
+            </td>
             <td>{{rooms}}</td>
             <td>{{area}}</td>
             <td>{{price}}</td>
