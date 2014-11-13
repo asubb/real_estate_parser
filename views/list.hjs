@@ -87,7 +87,7 @@
         };
 
         var edit = function (id, address, area, description) {
-            $("#apartmens tr").css("background-color", "transparent");
+            $("#apartments tr").css("background-color", "transparent");
             $("#edit-popup").css('right', '0px');
             $("#row_" + id).css("background-color", "#FFDDDD");
             $("#edit-title").html(address + " (" + area + "m<sup>2</sup>)");
@@ -121,7 +121,7 @@
             $("#edit-area").val('');
             $("#edit-id").val('');
             $("#edit-popup").css('right', '-1000px');
-            $("#apartmens tr").css("background-color", "transparent");
+            $("#apartments tr").css("background-color", "transparent");
         };
     </script>
 </head>
@@ -152,7 +152,7 @@
     <input type="button" value="cancel" onclick="editCancel()"/>
 </div>
 <div>
-    <table border="1" cellpadding="10" cellspacing="0" style="margin-top: 80px" id="apartmens">
+    <table border="1" cellpadding="10" cellspacing="0" style="margin-top: 80px" id="apartments">
         {{#apartments}}
             <tr id="row_{{id}}" {{#starred}}style="background: #EEEEEE"{{/starred}} title="{{description}}">
                 <td valign='top'>
