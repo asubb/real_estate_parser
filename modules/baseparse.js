@@ -100,10 +100,10 @@ var parse = function (req, res, base, source, startPage, encoding, pageCallback,
                         }
                         scheduleNextParse();
                     });
-
                 } else {
                     console.error(link, error, response ? response.statusCode : "");
                     res.write(link + " " + error + " " + (response ? response.statusCode : ""));
+                    scheduleNextParse();
                 }
             });
         });

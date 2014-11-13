@@ -20,6 +20,7 @@ var Apartment = mongoose.model('apartment', {
         source: String,
         url: String,
         price: Number,
+        floor: String,
         createdAt: Date,
         createdAtStr: String
     }],
