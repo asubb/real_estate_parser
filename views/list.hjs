@@ -57,6 +57,34 @@
                 $('#map').css('display', 'block');
             }
         };
+
+        var correctAddresses = function () {
+            $.getJSON('/list/all/json', function (res) {
+                for (var i = 0; i < res.length; i++) {
+                    (function (itm) {
+                        ymaps.geocode("Ижевск, " + itm.address)
+                                .then(function (res2) {
+                                    var coord = res2.geoObjects.get(0).geometry.getCoordinates();
+                                    ymaps.geocode(coord).then(function (res) {
+                                        var names = [];
+                                        res.geoObjects.each(function (obj) {
+                                            names.push(obj.properties.get('name'));
+                                        });
+                                        if (names.length > 0) {
+                                            var newAddress = names[0];
+                                            $.get("/list/update/json?" +
+                                                    "id=" + encodeURI(itm.id) +
+                                                    "&address=" + encodeURI(newAddress) +
+                                                    "&area=" + encodeURI(itm.area + ""), function (res) {
+                                                console.log(res, itm.id + " new address " + newAddress);
+                                            });
+                                        }
+                                    });
+                                });
+                    })(res[i])
+                }
+            });
+        };
         -->
     </script>
     <script>
@@ -131,10 +159,10 @@
     <a href="/parse">start parser</a> |
     <a href="/list/stats">stats</a> |
     <a href="/parse/cleanUpDupes">clean up duplicates</a> |
-    <a href="JavaScript: return false;" onclick="filterStar()">Toggle star</a> |
-    <a href="JavaScript: return false;"
-       onclick="$('#map').css('display', $('#map').css('display') == 'block' ? 'none' : 'block');">
-        Show/Hide Map
+    <a href="#" onclick="filterStar()">Toggle star</a> |
+    <a href="#" onclick="correctAddresses()">Correct addresses</a> |
+    <a href="#" onclick="$('#map').css('display', $('#map').css('display') == 'block' ? 'none' : 'block');">
+    Show/Hide Map
     </a>
 
 

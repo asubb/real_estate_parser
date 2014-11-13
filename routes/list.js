@@ -4,20 +4,22 @@ var moment = require('moment')
 var router = express.Router();
 
 function doList(callback, filter) {
-    filter = filter || {};
     var start = new Date(new Date().getTime() - 20 * 24 * 60 * 60 * 1000);
-    filter['$and'] = [
-        {$or: [
-            {isDuplicate: false},
-            {isDuplicate: null}
-        ]},
-        {$or: [
-            {hidden: false},
-            {hidden: null}
-        ]},
-        {createdAt: {$gte: start}}
-    ];
-    // list non-duplicates
+    if (!filter) {
+        filter = {};
+        // list non-duplicates and visible
+        filter['$and'] = [
+            {$or: [
+                {isDuplicate: false},
+                {isDuplicate: null}
+            ]},
+            {$or: [
+                {hidden: false},
+                {hidden: null}
+            ]},
+            {createdAt: {$gte: start}}
+        ];
+    }
     models.Apartment.find(filter)
         .sort({createdAt: -1})
         .exec(function (errors, l) {
@@ -97,6 +99,12 @@ router.get('/json', function (req, res) {
     });
 });
 
+router.get('/all/json', function (req, res) {
+    doList(function (l) {
+        res.json(l);
+    }, {});
+});
+
 router.get('/', function (req, res) {
     doList(function (l) {
         res.render('list', {
@@ -125,18 +133,32 @@ router.get('/stats/json', function (req, res) {
     })
 });
 
-router.get('/update', function (req, res) {
+function doUpdate(req, callback) {
     models.Apartment.findOne({id: req.query.id}, function (e, a) {
-        var ids = a.duplicates.map(function (x) {
+        var ids = a.duplicates ? a.duplicates.map(function (x) {
             return x.id
-        });
+        }) : [];
         ids.push(req.query.id);
         models.Apartment.update({id: {'$in': ids}}, {address: req.query.address, area: req.query.area}, { multi: true }, function (e, n, r) {
-            if (e) console.error("UPDATE error", ids, e, n, r);
+            if (e) {
+                console.error("UPDATE error", ids, e, n, r);
+                callback(false);
+            }
             console.log("UPDATE made " + n + "pcs", r);
-            res.redirect('/list#' + req.query.id);
+            callback(true);
         });
 
+    });
+}
+router.get('/update', function (req, res) {
+    doUpdate(req, function (success) {
+        res.redirect('/list#' + req.query.id);
+    });
+});
+
+router.get('/update/json', function (req, res) {
+    doUpdate(req, function (success) {
+        res.status(success ? 200 : 500).send(success ? 200 : 500);
     });
 });
 
