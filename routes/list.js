@@ -94,9 +94,6 @@ router.get('/update', function (req, res) {
             return x.id
         });
         ids.push(req.query.id);
-//        models.Apartment.find({id: {'$in' : ids}}, function(e, l) {
-//            console.log(l);
-//        });
         models.Apartment.update({id: {'$in': ids}}, {address: req.query.address, area: req.query.area}, { multi: true }, function (e, n, r) {
             if (e) console.error("UPDATE error", ids, e, n, r);
             console.log("UPDATE made " + n + "pcs", r);
