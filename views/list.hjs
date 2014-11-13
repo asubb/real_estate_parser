@@ -68,6 +68,14 @@
                 el.css('display', 'inline');
                 $("#row_" + id).css('background', res.starred ? '#EEEEEE' : 'transparent');
             });
+        };
+
+        var hide = function (id) {
+            var el = $("#row_" + id);
+            el.css('display', 'none');
+            $.getJSON('/list/hide?id=' + id, null, function (res) {
+                el.css('display', res.hidden ? 'none' : 'table-row');
+            });
         }
 
         var filterStar = function () {
@@ -120,9 +128,9 @@
 <body style="width: 100%; height: 100%">
 
 <div style="position: fixed; right: 0px; top: 0; background-color:#EEEEEE; padding: 10px; border: solid 1px #999999">
-    <a href="/parse"/>start parser</a> |
-    <a href="/parse/stat"/>parse stat</a> |
-    <a href="/parse/cleanUpDupes"/>clean up duplicates</a> |
+    <a href="/parse">start parser</a> |
+    <a href="/list/stats">stats</a> |
+    <a href="/parse/cleanUpDupes">clean up duplicates</a> |
     <a href="JavaScript: return false;" onclick="filterStar()">Toggle star</a> |
     <a href="JavaScript: return false;"
        onclick="$('#map').css('display', $('#map').css('display') == 'block' ? 'none' : 'block');">
@@ -154,10 +162,14 @@
                 </td>
                 <td valign='top'>
                     <a href="JavaScript: return false;" onclick="star('{{id}}')"
-                       id="star_{{id}}">{{#starred}}X{{/starred}}{{^starred}}o{{/starred}}</a>
+                       id="star_{{id}}">{{#starred}}V{{/starred}}{{^starred}}o{{/starred}}</a>
                 </td>
                 <td valign='top'>
-                    <div style="display:block;width:50px; overflow: hidden">
+                    <a href="JavaScript: return false;" onclick="hide('{{id}}')"
+                       id="star_{{id}}">{{^starred}}x{{/starred}}</a>
+                </td>
+                <td valign='top'>
+                <div style="display:block;width:50px; overflow: hidden">
                         <a target="_blank" href="{{url}}">{{id}}</a>
                     </div>
                 </td>

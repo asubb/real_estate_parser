@@ -14,6 +14,7 @@ var Apartment = mongoose.model('apartment', {
     parsedAt: Date,
     createdAt: Date,
     starred: Boolean,
+    hidden: Boolean,
     isDuplicate: Boolean,
     duplicates: [{
         id: String,

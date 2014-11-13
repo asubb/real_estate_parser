@@ -5,10 +5,16 @@ var router = express.Router();
 
 function doList(callback, filter) {
     filter = filter || {};
-    filter['$or'] = [
-        {isDuplicate: false},
-        {isDuplicate: null}
-    ]
+    filter['$and'] = [
+        {$or: [
+            {isDuplicate: false},
+            {isDuplicate: null}
+        ]},
+        {$or: [
+            {hidden: false},
+            {hidden: null}
+        ]}
+    ];
     // list non-duplicates
     models.Apartment.find(filter)
         .sort({createdAt: -1})
@@ -47,6 +53,35 @@ router.get('/star', function (req, res) {
                         if (errors) {
                             res.status(500).send("ERROR" + errors);
                             return console.error("STAR error", errors);
+                        }
+                        res.json(a);
+                    });
+            });
+        });
+});
+router.get('/hide', function (req, res) {
+    models.Apartment.findOne({
+        id: req.query.id
+    })
+        .exec(function (errors, a) {
+            if (errors) {
+                res.status(500).send("ERROR" + errors);
+                return console.error("HIDE error", errors);
+            }
+            if (!a) {
+                res.status(500).send("NOT FOUND " + req.query.id);
+                return console.error("HIDE error", "NOT FOUND " + req.query.id);
+            }
+            var hidden = a.hidden ? false : true;
+            models.Apartment.update({id: a.id}, {hidden: hidden}, function (e, n, r) {
+                if (e) console.error("HIDE error", a.id, e, n, r);
+                models.Apartment.findOne({
+                    id: req.query.id
+                })
+                    .exec(function (errors, a) {
+                        if (errors) {
+                            res.status(500).send("ERROR" + errors);
+                            return console.error("HIDE error", errors);
                         }
                         res.json(a);
                     });
