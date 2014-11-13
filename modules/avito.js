@@ -11,6 +11,8 @@ var parse = function (req, res) {
     var source = "Avito";
     var base = 'https://www.avito.ru';
 
+    var currPage = 1;
+    var maxPages = 5;
     var headers = {
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'accept-encoding': 'gzip,deflate,sdch',
@@ -165,12 +167,14 @@ var parse = function (req, res) {
                             items.push({id: item.id, url: url});
                         });
 
-                        // get next link
                         var nextEl = $("div.pagination__nav a.pagination__page");
                         if (nextEl.length == 1 && nextEl[0].innerHTML.indexOf("→") < 0) {
                             // if there is no next button reset nextEl
                             nextEl = null;
                         }
+                        if (currPage == maxPages) nextEl = null;
+                        currPage++;
+                        // get next link
                         if (nextEl) {
                             var link = nextEl[nextEl.length == 1 ? 0 : 1].href;
                             link = link.replace(/file:[\/]+(c:)?/, '');
@@ -192,7 +196,7 @@ var parse = function (req, res) {
         });
     };
 
-    var startLink = 'https://www.avito.ru/izhevsk/kvartiry/prodam/vtorichka/ne_pervyy_i_ne_posledniy?pmax=2000000&pmin=1500000&district=164-165-166&f=59_920b.575_5930';
+    var startLink = 'https://www.avito.ru/izhevsk/kvartiry/prodam/ne_pervyy_i_ne_posledniy?pmax=2000000&pmin=1500000&district=164-165-166&f=59_920b';
     parsePage(startLink);
 };
 
