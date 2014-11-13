@@ -186,10 +186,9 @@
                     <table>
                         {{#duplicates}}
                             <tr>
-                                <td valign='top'><a href="{{url}}">{{id}}</a></td>
+                                <td valign='top'><a href="{{url}}">{{source}}</a></td>
                                 <td valign='top'>{{floor}}</td>
                                 <td valign='top'>{{price}}</td>
-                                <td valign='top'>{{source}}</td>
                                 <td valign='top'>{{createdAtStr}}</td>
                             </tr>
                         {{/duplicates}}
