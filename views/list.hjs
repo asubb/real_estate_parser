@@ -166,11 +166,11 @@
                 </td>
                 <td valign='top'>
                     <a href="JavaScript: return false;" onclick="hide('{{id}}')"
-                       id="star_{{id}}">{{^starred}}x{{/starred}}</a>
+                       id="star_{{id}}">x</a>
                 </td>
                 <td valign='top'>
                 <div style="display:block;width:50px; overflow: hidden">
-                        <a target="_blank" href="{{url}}">{{id}}</a>
+                        <a target="_blank" href="{{url}}">{{source}}</a>
                     </div>
                 </td>
                 <td valign='top'><a href="JavaScript: return false;" onclick="positionOn('{{id}}')">on map</a></td>
