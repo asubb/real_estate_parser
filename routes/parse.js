@@ -24,9 +24,6 @@ function cleanUpDupes() {
                     var root = null;
                     for (var j = 0; j < theSameOnes.length; j++) {
                         var d = theSameOnes[j];
-//                        if (d.address.indexOf('Союзная ул') >= 0) {
-//                            console.log(lastOne,j + "--->>>", d.id, d.address, d.rooms, d.area);
-//                        } else return;
                         if (Math.abs(new Date(d.createdAt).getTime() - new Date(lastOne.newestCreatedAt).getTime()) < 60 * 1000
                             && !root) {
                             root = d;
@@ -63,8 +60,8 @@ function cleanUpDupes() {
 
 
 router.get('/', function (req, res) {
-//    avito.parse(req, res);
-//    uds18.parse(req, res);
+    avito.parse(req, res);
+    uds18.parse(req, res);
     irr.parse(req, res);
     res.send("Started");
 });
