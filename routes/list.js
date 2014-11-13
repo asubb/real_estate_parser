@@ -5,6 +5,7 @@ var router = express.Router();
 
 function doList(callback, filter) {
     filter = filter || {};
+    var start = new Date(new Date().getTime() - 20 * 24 * 60 * 60 * 1000);
     filter['$and'] = [
         {$or: [
             {isDuplicate: false},
@@ -13,7 +14,8 @@ function doList(callback, filter) {
         {$or: [
             {hidden: false},
             {hidden: null}
-        ]}
+        ]},
+        {createdAt: {$gte: start}}
     ];
     // list non-duplicates
     models.Apartment.find(filter)
