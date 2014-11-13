@@ -3,57 +3,6 @@ var models = require('../model/models');
 var moment = require('moment')
 var router = express.Router();
 
-
-function cleanUpDupes() {
-    models.Apartment.aggregate({
-        $group: {_id: {address: '$address', rooms: '$rooms', area: '$area'}, newestCreatedAt: {$max: '$createdAt'}}
-    }, function (errors, lastAll) {
-        if (errors) return console.error("FIND DUPLICATES error", errors);
-        for (var i = 0; i < lastAll.length; i++) {
-            (function (lastOne) {
-                // update the same ones and unite duplicates
-                models.Apartment.find({
-                    address: lastOne._id.address,
-                    rooms: lastOne._id.rooms,
-                    area: lastOne._id.area
-                }, function (errors, theSameOnes) {
-                    if (errors) return console.error("SET DUPLICATES error", errors);
-                    var duplicates = [];
-                    var root = null;
-                    for (var j = 0; j < theSameOnes.length; j++) {
-                        var d = theSameOnes[j];
-                        if (Math.abs(new Date(d.createdAt).getTime() - new Date(lastOne.newestCreatedAt).getTime()) < 60 * 1000) {
-                            root = d;
-                        } else {
-                            d.isDuplicate = true;
-                            d.duplicates = null; // reset the duplicates in the case if it was root before
-                            models.Apartment.remove({id: d.id})
-                            d.save();
-
-                            var dup = {
-                                id: d.id,
-                                source: d.source,
-                                url: d.url,
-                                price: d.price,
-                                createdAt: d.createdAt
-                            };
-                            duplicates.push(dup);
-                        }
-                    }
-                    if (root) {
-                        root.isDuplicate = false;
-                        root.duplicates = duplicates;
-                        models.Apartment.remove({id: root.id})
-                        root.save();
-                    } else {
-                        console.error("LOST ROOT", i, lastOne, theSameOnes);
-                    }
-                });
-            })(lastAll[i])
-        }
-    });
-}
-
 function doList(callback, filter) {
     filter = filter || {};
     filter['$or'] = [
@@ -74,12 +23,6 @@ function doList(callback, filter) {
             callback(l);
         });
 }
-
-router.get('/cleanUpDupes', function (req, res) {
-    // check for duplicates
-    cleanUpDupes();
-    res.send('Clean Up Started');
-});
 
 router.get('/star', function (req, res) {
     models.Apartment.findOne({
@@ -143,6 +86,24 @@ router.get('/stats/json', function (req, res) {
         if (e) return res.status(500).send("ERROR " + e);
         res.json(l);
     })
+});
+
+router.get('/update', function (req, res) {
+    models.Apartment.findOne({id: req.query.id}, function (e, a) {
+        var ids = a.duplicates.map(function (x) {
+            return x.id
+        });
+        ids.push(req.query.id);
+//        models.Apartment.find({id: {'$in' : ids}}, function(e, l) {
+//            console.log(l);
+//        });
+        models.Apartment.update({id: {'$in': ids}}, {address: req.query.address, area: req.query.area}, { multi: true }, function (e, n, r) {
+            if (e) console.error("UPDATE error", ids, e, n, r);
+            console.log("UPDATE made " + n + "pcs", r);
+            res.redirect('/list#' + req.query.id);
+        });
+
+    });
 });
 
 module.exports = router;

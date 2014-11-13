@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="http://code.jquery.com/jquery.js" type="text/javascript"></script>
+    <script src="/javascripts/jquery-1.11.1.min.js"></script>
     <script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
     <script type="text/javascript">
         <!--
@@ -57,7 +57,9 @@
                 $('#map').css('display', 'block');
             }
         };
-
+        -->
+    </script>
+    <script>
         var star = function (id) {
             var el = $("#star_" + id);
             el.css('display', 'none');
@@ -74,56 +76,114 @@
             } else {
                 location.href = '/list';
             }
-        }
-        -->
+        };
+
+        var edit = function (id, address, area, description) {
+            $("#apartmens tr").css("background-color", "transparent");
+            $("#edit-popup").css('right', '0px');
+            $("#row_" + id).css("background-color", "#FFDDDD");
+            $("#edit-title").html(address + " (" + area + "m<sup>2</sup>)");
+            $("#edit-address").val(address);
+            $("#edit-area").val(area);
+            $("#edit-desc").html(description);
+            $("#edit-id").val(id);
+            location.href = "#" + id;
+        };
+
+        var editSubmit = function () {
+            var id = $("#edit-id").val();
+            if (id) {
+                var address = $("#edit-address").val().replace(/^\s*/, '').replace(/\s*$/, '');
+                if (address == '') return alert("Please specify address")
+                var area = parseFloat($("#edit-area").val().replace(/[^\d\.]/g, ''));
+                if (!area) return alert("Please specify area")
+                location.href = "/list/update?" +
+                        "id=" + encodeURI(id) +
+                        "&address=" + encodeURI(address) +
+                        "&area=" + encodeURI(area + "");
+            } else {
+                alert('Select element first');
+            }
+        };
+
+        var editCancel = function () {
+            $("#edit-title").html("Choose row");
+            $("#edit-desc").html('');
+            $("#edit-address").val('');
+            $("#edit-area").val('');
+            $("#edit-id").val('');
+            $("#edit-popup").css('right', '-1000px');
+            $("#apartmens tr").css("background-color", "transparent");
+        };
     </script>
 </head>
 <body style="width: 100%; height: 100%">
 
-<div style="position: fixed; right: 0; top: 0">
-    <a href="JavaScript: return false;" onclick="filterStar()">Toggle star</a>
-    <a href="JavaScript: return false;" onclick="$('#map').css('display', $('#map').css('display') == 'block' ? 'none' : 'block');">
+<div style="position: fixed; right: 0px; top: 0; background-color:#EEEEEE; padding: 10px; border: solid 1px #999999">
+    <a href="/parse"/>start parser</a> |
+    <a href="/parse/stat"/>parse stat</a> |
+    <a href="/parse/cleanUpDupes"/>clean up duplicates</a> |
+    <a href="JavaScript: return false;" onclick="filterStar()">Toggle star</a> |
+    <a href="JavaScript: return false;"
+       onclick="$('#map').css('display', $('#map').css('display') == 'block' ? 'none' : 'block');">
         Show/Hide Map
     </a>
 
 
     <div id="map" style="display: none; position: absolute; width:900px; height:700px; right: 0"></div>
 </div>
+<div id="edit-popup"
+     style="position: fixed; width: 300px; right: -1000px; top: 100px; background-color:#EEEEEE; padding: 10px; border: solid 1px #999999">
+    <h3 id="edit-title">Choose row</h3>
 
+    <p id="edit-desc"></p>
+    <input type="hidden" name="id" id="edit-id">
+    address <input type="field" name="address" id="edit-address"/><br>
+    area <input type="field" name="area" id="edit-area"/><br>
+    <input type="button" value="update" onclick="editSubmit()"/>
+    <input type="button" value="cancel" onclick="editCancel()"/>
+</div>
 <div>
-    <table border="1" cellpadding="10" cellspacing="0" style="margin-top: 80px">
+    <table border="1" cellpadding="10" cellspacing="0" style="margin-top: 80px" id="apartmens">
         {{#apartments}}
-        <tr id="row_{{id}}" {{#starred}}style="background: #EEEEEE"{{/starred}}>
-            <td><a href="JavaScript: return false;" onclick="star('{{id}}')"
-                   id="star_{{id}}">{{#starred}}X{{/starred}}{{^starred}}o{{/starred}}</a>
-            </td>
-            <td>
-                <div style="display:block;width:50px; overflow: hidden">
-                    <a target="_blank" href="{{url}}">{{id}}</a>
-                </div>
-            </td>
-            <td><a href="JavaScript: return false;" onclick="positionOn('{{id}}')">on map</a></td>
-            <td>{{district}}</td>
-            <td>
-                <div style="display:block;width:200px; overflow: hidden">{{address}}</div>
-            </td>
-            <td>{{rooms}}</td>
-            <td>{{area}}</td>
-            <td>{{price}}</td>
-            <td>{{createdAtStr}}</td>
-            <td style="padding: 0">
-                <table>
-                    {{#duplicates}}
-                    <tr>
-                        <td><a href="{{url}}">{{id}}</a></td>
-                        <td>{{price}}</td>
-                        <td>{{source}}</td>
-                        <td>{{createdAtStr}}</td>
-                    </tr>
-                    {{/duplicates}}
-                </table>
-            </td>
-        </tr>
+            <tr id="row_{{id}}" {{#starred}}style="background: #EEEEEE"{{/starred}} title="{{description}}">
+                <td valign='top'>
+                    <a name="{{id}}" style="position: relative; top: 0"></a>
+                    <a href="JavaScript: return false;"
+                       onclick="edit('{{id}}', '{{address}}', '{{area}}', '{{description}}')">E</a>
+                </td>
+                <td valign='top'>
+                    <a href="JavaScript: return false;" onclick="star('{{id}}')"
+                       id="star_{{id}}">{{#starred}}X{{/starred}}{{^starred}}o{{/starred}}</a>
+                </td>
+                <td valign='top'>
+                    <div style="display:block;width:50px; overflow: hidden">
+                        <a target="_blank" href="{{url}}">{{id}}</a>
+                    </div>
+                </td>
+                <td valign='top'><a href="JavaScript: return false;" onclick="positionOn('{{id}}')">on map</a></td>
+                <td valign='top'>
+                    <div style="display:block;width:200px; overflow: hidden">{{address}}</div>
+                </td>
+                <td valign='top'>{{floor}}</td>
+                <td valign='top'>{{rooms}}</td>
+                <td valign='top'>{{area}}</td>
+                <td valign='top'>{{price}}</td>
+                <td valign='top'>{{createdAtStr}}</td>
+                <td style="padding: 0">
+                    <table>
+                        {{#duplicates}}
+                            <tr>
+                                <td valign='top'><a href="{{url}}">{{id}}</a></td>
+                                <td valign='top'>{{floor}}</td>
+                                <td valign='top'>{{price}}</td>
+                                <td valign='top'>{{source}}</td>
+                                <td valign='top'>{{createdAtStr}}</td>
+                            </tr>
+                        {{/duplicates}}
+                    </table>
+                </td>
+            </tr>
         {{/apartments}}
     </table>
 </div>
