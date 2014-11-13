@@ -26,7 +26,8 @@ var Apartment = mongoose.model('apartment', {
         createdAtStr: String
     }],
     // js calculated fields
-    createdAtStr: String
+    createdAtStr: String,
+    pricePerMeter: String
 });
 
 var Stat = mongoose.model('statistic', {

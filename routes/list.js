@@ -4,8 +4,8 @@ var moment = require('moment')
 var router = express.Router();
 
 function doList(callback, filter) {
-    var start = new Date(new Date().getTime() - 20 * 24 * 60 * 60 * 1000);
     if (!filter) {
+        var start = new Date(new Date().getTime() - 10 * 24 * 60 * 60 * 1000);
         filter = {};
         // list non-duplicates and visible
         filter['$and'] = [
@@ -17,7 +17,8 @@ function doList(callback, filter) {
                 {hidden: false},
                 {hidden: null}
             ]},
-            {createdAt: {$gte: start}}
+            {createdAt: {$gte: start}},
+            {price: {$lte: 1800000}}
         ];
     }
     models.Apartment.find(filter)
@@ -26,6 +27,7 @@ function doList(callback, filter) {
             if (errors) return console.error("LIST error", errors);
             for (var i = 0; i < l.length; i++) {
                 l[i].createdAtStr = moment(new Date(l[i].createdAt)).format("DD MMMM YY");
+                l[i].pricePerMeter = (l[i].price / l[i].area).toFixed(2);
                 for (var j = 0; l[i].duplicates && j < l[i].duplicates.length; j++) {
                     l[i].duplicates[j].createdAtStr = moment(new Date(l[i].duplicates[j].createdAt)).format("DD MMMM YY");
                 }
@@ -106,11 +108,31 @@ router.get('/all/json', function (req, res) {
 });
 
 router.get('/', function (req, res) {
+    var filter = null;
+    if (req.query.address) {
+        var start = new Date(new Date().getTime() - 10 * 24 * 60 * 60 * 1000);
+        filter = {};
+        // list non-duplicates and visible
+        filter['$and'] = [
+            {$or: [
+                {isDuplicate: false},
+                {isDuplicate: null}
+            ]},
+            {$or: [
+                {hidden: false},
+                {hidden: null}
+            ]},
+            {createdAt: {$gte: start}},
+            {price: {$lte: 1800000}},
+            {address: {$regex: ".*" + req.query.address + ".*"}}
+        ];
+
+    }
     doList(function (l) {
         res.render('list', {
             apartments: l
         });
-    });
+    }, filter);
 });
 
 router.get('/starred', function (req, res) {

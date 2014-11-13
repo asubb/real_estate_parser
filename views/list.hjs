@@ -151,6 +151,11 @@
             $("#edit-popup").css('right', '-1000px');
             $("#apartments tr").css("background-color", "transparent");
         };
+
+        var filterByAddress = function (address) {
+            var filter = address.replace(/улица/, '').replace(/,?\s*[\d]+[а-я]?$/, '').replace(/^\s+/, '').replace(/\s+$/, '');
+            location.href = "/list?address=" + encodeURI(filter);
+        }
     </script>
 </head>
 <body style="width: 100%; height: 100%">
@@ -203,18 +208,21 @@
                 </td>
                 <td valign='top'><a href="JavaScript: return false;" onclick="positionOn('{{id}}')">on map</a></td>
                 <td valign='top'>
-                    <div style="display:block;width:200px; overflow: hidden">{{address}}</div>
+                    <div style="display:block;width:200px; overflow: hidden"><a href="#"
+                                                                                onclick="filterByAddress('{{address}}')">{{address}}</a>
+                    </div>
                 </td>
                 <td valign='top'>{{floor}}</td>
                 <td valign='top'>{{rooms}}</td>
                 <td valign='top'>{{area}}</td>
                 <td valign='top'>{{price}}</td>
+                <td valign='top'>{{pricePerMeter}}</td>
                 <td valign='top'>{{createdAtStr}}</td>
                 <td style="padding: 0">
                     <table>
                         {{#duplicates}}
                             <tr>
-                                <td valign='top'><a href="{{url}}">{{source}}</a></td>
+                                <td valign='top'><a target="_blank" href="{{url}}">{{source}}</a></td>
                                 <td valign='top'>{{floor}}</td>
                                 <td valign='top'>{{price}}</td>
                                 <td valign='top'>{{createdAtStr}}</td>
