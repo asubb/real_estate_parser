@@ -207,15 +207,15 @@
                     </div>
                 </td>
                 <td valign='top'><a href="JavaScript: return false;" onclick="positionOn('{{id}}')">on map</a></td>
+                <td valign='top'><strong>{{priceStr}}</strong></td>
                 <td valign='top'>
-                    <div style="display:block;width:200px; overflow: hidden">
+                <div style="display:block;width:200px; overflow: hidden">
                         <a href="#" onclick="filterByAddress('{{address}}')">{{address}}</a>
                     </div>
                 </td>
                 <td valign='top'>{{floor}}</td>
                 <td valign='top'>{{rooms}}</td>
                 <td valign='top'>{{area}}</td>
-                <td valign='top'>{{price}}</td>
                 <td valign='top'>{{pricePerMeter}}</td>
                 <td valign='top'>{{createdAtStr}}</td>
                 <td style="padding: 0">

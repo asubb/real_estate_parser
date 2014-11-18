@@ -28,6 +28,7 @@ function doList(callback, filter) {
             for (var i = 0; i < l.length; i++) {
                 l[i].createdAtStr = moment(new Date(l[i].createdAt)).format("DD MMMM YY");
                 l[i].pricePerMeter = (l[i].price / l[i].area).toFixed(2);
+                l[i].priceStr = (l[i].price / 1000).toFixed(0);
                 for (var j = 0; l[i].duplicates && j < l[i].duplicates.length; j++) {
                     l[i].duplicates[j].createdAtStr = moment(new Date(l[i].duplicates[j].createdAt)).format("DD MMMM YY");
                 }
